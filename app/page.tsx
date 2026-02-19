@@ -68,6 +68,7 @@ export default function Home() {
 
   return (
     <main className="bg-[#050A14] text-white overflow-hidden antialiased selection:bg-cyan-500/30 relative">
+      <MagneticCursor />
       {/* Cinematic Noise Overlay */}
       <div className="fixed inset-0 z-[100] pointer-events-none opacity-[0.03] mix-blend-overlay" 
            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
@@ -79,6 +80,16 @@ export default function Home() {
           animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
           className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" 
+        />
+        <motion.div
+          animate={{ x: [0, 80, 0], y: [0, -60, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[15%] left-[8%] w-64 h-64 rounded-full bg-cyan-400/10 blur-[90px]"
+        />
+        <motion.div
+          animate={{ x: [0, -60, 0], y: [0, 70, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-[18%] right-[10%] w-72 h-72 rounded-full bg-indigo-500/10 blur-[100px]"
         />
       </div>
 
@@ -136,6 +147,7 @@ export default function Home() {
         id="home"
         className="relative min-h-screen flex items-center justify-center px-6 pt-20"
       >
+        <NeuralNetworkBackground />
         {/* Animated Background Elements */}
         <motion.div
           className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px]"
@@ -219,6 +231,7 @@ export default function Home() {
             <MagneticWrapper>
               <a
                 href="#projects"
+                data-cursor="VIEW"
                 className="inline-block px-8 py-4 rounded-full bg-white text-black font-bold hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
               >
                 View Work
@@ -227,6 +240,7 @@ export default function Home() {
             <MagneticWrapper>
               <a
                 href="#contact"
+                data-cursor="OPEN"
                 className="inline-block px-8 py-4 rounded-full border border-white/20 hover:bg-white/10 transition-all backdrop-blur-sm"
               >
                 Contact Me
@@ -251,31 +265,11 @@ export default function Home() {
           </motion.div>
 
           <div className="space-y-8">
-            <motion.h2
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+            <KineticHeading
+              text="Beyond the Code"
               className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent"
-            >
-              Beyond the Code
-            </motion.h2>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="space-y-6 text-lg text-gray-400 leading-relaxed"
-            >
-              <p>
-                I am an <span className="text-cyan-300">AI & Machine Learning Engineer</span> obsessed with the intersection of theoretical research and practical application. My journey involves decoding complex transformer architectures and reassembling them into scalable, real-world solutions.
-              </p>
-              <p>
-                From building defense-grade monitoring systems at <span className="text-white">Bharat Electronics</span> to conducting cutting-edge Generative AI research at <span className="text-white">IIT Kanpur</span>, I thrive in environments that demand both innovation and reliability.
-              </p>
-              <p>
-                Currently, I&apos;m focused on optimizing RAG pipelines and deploying efficient LLMs on the cloud.
-              </p>
-            </motion.div>
+            />
+            <TerminalAbout />
           </div>
         </div>
       </section>
@@ -284,14 +278,27 @@ export default function Home() {
       <section id="experience" className="py-32 px-6 relative bg-[#080E1A]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.1),_transparent_50%)]" />
         <div className="max-w-5xl mx-auto relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <KineticHeading
+            text="Professional Journey"
             className="text-4xl md:text-5xl font-bold mb-24 text-center"
-          >
-            Professional Journey
-          </motion.h2>
+          />
+
+          <div className="hidden md:block absolute left-1/2 top-28 bottom-12 -translate-x-1/2 pointer-events-none">
+            <motion.div
+              className="h-full w-px bg-gradient-to-b from-cyan-300/0 via-cyan-300/70 to-cyan-300/0"
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            />
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <motion.div
+                key={idx}
+                className="absolute left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.9)]"
+                style={{ top: `${idx * 12}%` }}
+                animate={{ y: [0, 22, 0], opacity: [0.2, 1, 0.2] }}
+                transition={{ duration: 1.8, repeat: Infinity, delay: idx * 0.12 }}
+              />
+            ))}
+          </div>
 
           <div className="space-y-12">
             <ExperienceItem
@@ -352,14 +359,10 @@ export default function Home() {
       {/* Projects Section */}
       <section id="projects" className="py-32 px-6">
         <div className="max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <KineticHeading
+            text="Featured Projects"
             className="text-4xl md:text-5xl font-bold mb-24 text-center"
-          >
-            Featured Projects
-          </motion.h2>
+          />
 
           <ProjectDomain
             title="Generative AI & Intelligent Systems"
@@ -437,14 +440,10 @@ export default function Home() {
       <section id="research" className="py-32 px-6 bg-[#080E1A] relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
         <div className="max-w-5xl mx-auto relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <KineticHeading
+            text="Research & Publications"
             className="text-4xl md:text-5xl font-bold mb-20 text-center"
-          >
-            Research & Publications
-          </motion.h2>
+          />
 
           <div className="grid gap-8">
             {[
@@ -519,14 +518,10 @@ export default function Home() {
       {/* Certifications Section */}
       <section id="certifications" className="py-32 px-6">
         <div className="max-w-6xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <KineticHeading
+            text="Certifications"
             className="text-4xl md:text-5xl font-bold mb-20 text-center"
-          >
-            Certifications
-          </motion.h2>
+          />
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 perspective-1000">
             {[
@@ -568,15 +563,10 @@ export default function Home() {
       {/* Achievements Section */}
       <section id="achievements" className="py-32 bg-[#0B1120]">
         <div className="max-w-6xl mx-auto px-6">
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
+          <KineticHeading
+            text="Achievements & Recognition"
             className="text-4xl md:text-5xl font-bold mb-20 text-center"
-          >
-            Achievements & Recognition
-          </motion.h2>
+          />
 
           <div className="grid md:grid-cols-3 gap-16 mb-28">
             <StatItem number="4+" label="International Publications" />
@@ -618,14 +608,10 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-[#050A14] to-[#050A14] pointer-events-none" />
         
         <div className="max-w-6xl mx-auto relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <KineticHeading
+            text="Technical Arsenal"
             className="text-4xl md:text-5xl font-bold mb-20 text-center bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent"
-          >
-            Technical Arsenal
-          </motion.h2>
+          />
 
           <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
             {[
@@ -658,45 +644,7 @@ export default function Home() {
                 desc: "Deploying and orchestrating AI solutions on enterprise-grade cloud infrastructure."
               },
             ].map((domain, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="group relative p-8 rounded-3xl bg-[#0B1120] border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] overflow-hidden"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${domain.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
-                
-                <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-6">
-                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${domain.color} p-0.5`}>
-                            <div className="w-full h-full bg-[#0B1120] rounded-[14px] flex items-center justify-center text-xs md:text-sm font-bold tracking-[0.08em]">
-                                {domain.icon}
-                            </div>
-                        </div>
-                        <div className="text-right">
-                             <h3 className="text-2xl font-bold text-white mb-1">{domain.title}</h3>
-                             <div className={`h-1 w-12 ml-auto rounded-full bg-gradient-to-r ${domain.color}`} />
-                        </div>
-                    </div>
-                    
-                    <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-                        {domain.desc}
-                    </p>
-
-                    <div className="flex flex-wrap gap-2">
-                    {domain.skills.map((skill, i) => (
-                        <span 
-                        key={i} 
-                        className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-gray-300 group-hover:bg-white/10 group-hover:text-white group-hover:border-white/20 transition-all duration-300 cursor-default"
-                        >
-                        {skill}
-                        </span>
-                    ))}
-                    </div>
-                </div>
-              </motion.div>
+              <HoloSkillCard key={index} domain={domain} index={index} />
             ))}
           </div>
         </div>
@@ -765,16 +713,337 @@ export default function Home() {
 // --- Components ---
 
 function GlitchText({ text, className = "" }: { text: string; className?: string }) {
+  const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  const [displayText, setDisplayText] = useState(text);
+
+  useEffect(() => {
+    let scrambleTimer: ReturnType<typeof setInterval> | null = null;
+
+    const runGlitch = () => {
+      let step = 0;
+      scrambleTimer = setInterval(() => {
+        step += 1;
+        setDisplayText(
+          text
+            .split("")
+            .map((ch, idx) => {
+              if (ch === " ") return " ";
+              if (idx < step) return ch;
+              return glyphs[Math.floor(Math.random() * glyphs.length)];
+            })
+            .join(""),
+        );
+
+        if (step >= text.length) {
+          if (scrambleTimer) clearInterval(scrambleTimer);
+          setDisplayText(text);
+        }
+      }, 36);
+    };
+
+    runGlitch();
+    const cycleTimer = setInterval(runGlitch, 4500);
+
+    return () => {
+      clearInterval(cycleTimer);
+      if (scrambleTimer) clearInterval(scrambleTimer);
+    };
+  }, [text]);
+
   return (
     <div className="relative inline-block group cursor-default">
-      <span className={`relative z-10 inline-block ${className}`}>{text}</span>
+      <span className={`relative z-10 inline-block ${className}`}>{displayText}</span>
       <span className="absolute top-0 left-0 -z-10 w-full h-full text-cyan-500 opacity-0 group-hover:opacity-70 group-hover:translate-x-[3px] group-hover:translate-y-[3px] transition-all duration-100 select-none pointer-events-none mix-blend-screen">
-        {text}
+        {displayText}
       </span>
       <span className="absolute top-0 left-0 -z-10 w-full h-full text-red-500 opacity-0 group-hover:opacity-70 group-hover:-translate-x-[3px] group-hover:-translate-y-[3px] transition-all duration-100 select-none pointer-events-none mix-blend-screen">
-        {text}
+        {displayText}
       </span>
     </div>
+  );
+}
+
+function KineticHeading({ text, className = "" }: { text: string; className?: string }) {
+  return (
+    <motion.h2
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.45 }}
+      variants={{
+        hidden: {},
+        visible: {
+          transition: {
+            staggerChildren: 0.02,
+          },
+        },
+      }}
+      className={className}
+    >
+      {text.split("").map((char, index) => (
+        <motion.span
+          key={`${char}-${index}`}
+          variants={{
+            hidden: { y: 26, opacity: 0, rotateX: -45 },
+            visible: { y: 0, opacity: 1, rotateX: 0 },
+          }}
+          transition={{ duration: 0.42, ease: "easeOut" }}
+          className="inline-block"
+        >
+          {char === " " ? "\u00A0" : char}
+        </motion.span>
+      ))}
+    </motion.h2>
+  );
+}
+
+function TerminalAbout() {
+  const lines = [
+    "$ whoami",
+    "Navaneeth A D | AI & ML Engineer",
+    "$ focus --current",
+    "Generative AI, RAG systems, and production-grade backend orchestration.",
+    "$ mission",
+    "Turning research ideas into reliable, deployable intelligent systems.",
+  ];
+  const [visible, setVisible] = useState(1);
+
+  useEffect(() => {
+    if (visible >= lines.length) return;
+    const timer = setTimeout(() => setVisible((prev) => prev + 1), 420);
+    return () => clearTimeout(timer);
+  }, [visible, lines.length]);
+
+  return (
+    <div className="rounded-2xl border border-emerald-500/25 bg-[#050B12] shadow-[0_0_20px_rgba(16,185,129,0.18)] overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 bg-emerald-500/10 border-b border-emerald-500/20">
+        <span className="w-2.5 h-2.5 rounded-full bg-emerald-300" />
+        <span className="w-2.5 h-2.5 rounded-full bg-yellow-300" />
+        <span className="w-2.5 h-2.5 rounded-full bg-red-300" />
+        <span className="ml-3 text-emerald-200/80 text-xs font-mono">terminal://navaneeth.ai</span>
+      </div>
+      <div className="p-6 space-y-2 font-mono text-sm md:text-base">
+        {lines.slice(0, visible).map((line, idx) => (
+          <motion.p
+            key={line}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25 }}
+            className={idx % 2 === 0 ? "text-emerald-300" : "text-gray-300"}
+          >
+            {line}
+          </motion.p>
+        ))}
+        {visible < lines.length && (
+          <span className="inline-block w-2 h-4 bg-emerald-300 animate-pulse align-middle" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NeuralNetworkBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let raf = 0;
+    const pointer = { x: -9999, y: -9999 };
+    const nodes = Array.from({ length: 34 }).map(() => ({
+      x: Math.random(),
+      y: Math.random(),
+      vx: (Math.random() - 0.5) * 0.0018,
+      vy: (Math.random() - 0.5) * 0.0018,
+    }));
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.clientWidth * dpr;
+      canvas.height = canvas.clientHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const onMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = e.clientX - rect.left;
+      pointer.y = e.clientY - rect.top;
+    };
+
+    const draw = () => {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      nodes.forEach((n) => {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > 1) n.vx *= -1;
+        if (n.y < 0 || n.y > 1) n.vy *= -1;
+      });
+
+      for (let i = 0; i < nodes.length; i += 1) {
+        for (let j = i + 1; j < nodes.length; j += 1) {
+          const ax = nodes[i].x * w;
+          const ay = nodes[i].y * h;
+          const bx = nodes[j].x * w;
+          const by = nodes[j].y * h;
+          const d = Math.hypot(ax - bx, ay - by);
+          if (d < 160) {
+            ctx.strokeStyle = `rgba(34,211,238,${0.12 - d / 1800})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+            ctx.stroke();
+          }
+        }
+      }
+
+      nodes.forEach((n) => {
+        const x = n.x * w;
+        const y = n.y * h;
+        const near = Math.hypot(pointer.x - x, pointer.y - y) < 110;
+        ctx.fillStyle = near ? "rgba(59,130,246,0.95)" : "rgba(34,211,238,0.75)";
+        ctx.beginPath();
+        ctx.arc(x, y, near ? 2.8 : 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      raf = requestAnimationFrame(draw);
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+    window.addEventListener("mousemove", onMove);
+    draw();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", onMove);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-45 pointer-events-none" />;
+}
+
+function MagneticCursor() {
+  const [mode, setMode] = useState("VIEW");
+  const x = useMotionValue(-100);
+  const y = useMotionValue(-100);
+  const rx = useSpring(x, { stiffness: 240, damping: 22 });
+  const ry = useSpring(y, { stiffness: 240, damping: 22 });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const fine = window.matchMedia("(pointer:fine)").matches;
+    if (!fine) return;
+
+    document.documentElement.classList.add("custom-cursor-active");
+
+    const onMove = (e: MouseEvent) => {
+      x.set(e.clientX);
+      y.set(e.clientY);
+    };
+    const onOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const cursorHint =
+        target.closest("[data-cursor]")?.getAttribute("data-cursor") ??
+        (target.closest("a,button") ? "OPEN" : "VIEW");
+      setMode(cursorHint);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseover", onOver);
+
+    return () => {
+      document.documentElement.classList.remove("custom-cursor-active");
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseover", onOver);
+    };
+  }, [x, y]);
+
+  return (
+    <>
+      <motion.div
+        className="magnetic-cursor fixed top-0 left-0 z-[150] pointer-events-none w-3 h-3 rounded-full bg-cyan-300 mix-blend-screen -translate-x-1/2 -translate-y-1/2"
+        style={{ x, y }}
+      />
+      <motion.div
+        className="magnetic-cursor fixed top-0 left-0 z-[149] pointer-events-none w-16 h-16 rounded-full border border-cyan-300/60 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center text-[10px] font-semibold tracking-[0.12em] text-cyan-200/90"
+        style={{ x: rx, y: ry }}
+      >
+        {mode}
+      </motion.div>
+    </>
+  );
+}
+
+function HoloSkillCard({
+  domain,
+  index,
+}: {
+  domain: {
+    title: string;
+    skills: string[];
+    color: string;
+    icon: string;
+    desc: string;
+  };
+  index: number;
+}) {
+  const [flipped, setFlipped] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.12 }}
+      className="h-72 [perspective:1200px]"
+      onMouseEnter={() => setFlipped(true)}
+      onMouseLeave={() => setFlipped(false)}
+      data-cursor="VIEW"
+    >
+      <motion.div
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        transition={{ duration: 0.55, ease: "easeInOut" }}
+        className="relative w-full h-full [transform-style:preserve-3d]"
+      >
+        <div className="absolute inset-0 rounded-3xl border border-white/10 bg-[#0B1120] p-8 overflow-hidden [backface-visibility:hidden]">
+          <div className="absolute inset-0 opacity-20 bg-[conic-gradient(from_110deg,rgba(34,211,238,0.35),rgba(59,130,246,0.15),rgba(167,139,250,0.3),rgba(34,211,238,0.35))] animate-[spin_8s_linear_infinite]" />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-6">
+              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${domain.color} p-0.5`}>
+                <div className="w-full h-full rounded-[14px] bg-[#0B1120] flex items-center justify-center text-xs md:text-sm font-bold tracking-[0.08em]">
+                  {domain.icon}
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-white text-right">{domain.title}</h3>
+            </div>
+            <p className="text-gray-300 text-sm leading-relaxed">{domain.desc}</p>
+          </div>
+        </div>
+
+        <div className="absolute inset-0 rounded-3xl border border-cyan-300/25 bg-[#081022] p-8 [transform:rotateY(180deg)] [backface-visibility:hidden]">
+          <h4 className="text-cyan-300 font-semibold mb-4 tracking-wide">Core Stack</h4>
+          <div className="flex flex-wrap gap-2">
+            {domain.skills.map((skill) => (
+              <span
+                key={skill}
+                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-gray-200"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -818,8 +1087,9 @@ function MagneticWrapper({
 function ThreeDTiltCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-0.5, 0.5], ["15deg", "-15deg"]);
-  const rotateY = useTransform(x, [-0.5, 0.5], ["-15deg", "15deg"]);
+  const rotateX = useTransform(y, [-0.5, 0.5], ["12deg", "-12deg"]);
+  const rotateY = useTransform(x, [-0.5, 0.5], ["-12deg", "12deg"]);
+  const lift = useTransform(y, [-0.5, 0.5], [-6, 6]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -845,9 +1115,11 @@ function ThreeDTiltCard({ children, className = "" }: { children: React.ReactNod
       style={{
         rotateX,
         rotateY,
+        y: lift,
         transformStyle: "preserve-3d",
       }}
-      className={`relative transition-all duration-200 ease-out ${className}`}
+      whileHover={{ scale: 1.015 }}
+      className={`relative transition-all duration-200 ease-out will-change-transform ${className}`}
     >
       <div style={{ transform: "translateZ(0px)", transformStyle: "preserve-3d" }} className="h-full">
         {children}
@@ -992,48 +1264,52 @@ function ProjectDomain({
         {projects.map((project, index) => (
           <motion.div
             key={index}
+            data-cursor="VIEW"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1, duration: 0.5 }}
             whileHover={{ scale: 1.02, y: -5 }}
           >
-          <SpotlightCard className="p-8 hover:border-blue-500/30 transition-colors h-full">
-            <h4 className="text-xl font-bold mb-3 text-gray-100 group-hover:text-blue-400 transition-colors">
-              {project.name}
-            </h4>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              {project.desc}
-            </p>
-            {project.publication && (
-              <p className="text-blue-300/90 text-xs leading-relaxed mb-4">
-                <span className="font-semibold text-blue-200">Publication:</span>{" "}
-                {project.publication}
-              </p>
-            )}
-            {project.impact && project.impact.length > 0 && (
-              <ul className="space-y-2 mb-6">
-                {project.impact.map((item) => (
-                  <li key={item} className="text-gray-400 text-xs leading-relaxed flex items-start gap-2">
-                    <span className="mt-1.5 h-1 w-1 rounded-full bg-cyan-300 shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {project.tags && (
-              <div className="flex flex-wrap gap-2 mt-auto">
-                {project.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-xs text-gray-300"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </SpotlightCard>
+            <ThreeDTiltCard className="h-full">
+              <SpotlightCard className="p-8 hover:border-blue-500/30 transition-colors h-full">
+                <div className="absolute -top-24 -right-20 w-44 h-44 bg-gradient-to-br from-white/15 to-transparent rotate-12 opacity-20 group-hover:opacity-45 transition-opacity pointer-events-none" />
+                <h4 className="text-xl font-bold mb-3 text-gray-100 group-hover:text-blue-400 transition-colors">
+                  {project.name}
+                </h4>
+                <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                  {project.desc}
+                </p>
+                {project.publication && (
+                  <p className="text-blue-300/90 text-xs leading-relaxed mb-4">
+                    <span className="font-semibold text-blue-200">Publication:</span>{" "}
+                    {project.publication}
+                  </p>
+                )}
+                {project.impact && project.impact.length > 0 && (
+                  <ul className="space-y-2 mb-6">
+                    {project.impact.map((item) => (
+                      <li key={item} className="text-gray-400 text-xs leading-relaxed flex items-start gap-2">
+                        <span className="mt-1.5 h-1 w-1 rounded-full bg-cyan-300 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {project.tags && (
+                  <div className="flex flex-wrap gap-2 mt-auto">
+                    {project.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-xs text-gray-300"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </SpotlightCard>
+            </ThreeDTiltCard>
           </motion.div>
         ))}
       </div>
@@ -1103,20 +1379,74 @@ function ExperienceItem({
 }
 
 function StatItem({ number, label }: { number: string; label: string }) {
+  const target = parseInt(number.replace(/\D/g, ""), 10) || 0;
+  const suffix = number.replace(/[0-9]/g, "");
+  const ref = useRef<HTMLDivElement>(null);
+  const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
+  const [finished, setFinished] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 },
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+    let rafId = 0;
+    const startTime = performance.now();
+    const duration = 1300;
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.max(1, Math.round(target * eased)));
+      if (progress < 1) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        setCount(target);
+        setFinished(true);
+      }
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [started, target]);
+
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, scale: 0.5 }}
       whileInView={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, type: "spring" }}
       viewport={{ once: true }}
-      whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-      className="text-center"
+      whileHover={{ scale: 1.08, rotate: [0, -4, 4, 0] }}
+      className="text-center relative"
     >
+      {finished && (
+        <motion.div
+          className="absolute left-1/2 top-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/40"
+          initial={{ scale: 0.3, opacity: 0.9 }}
+          animate={{ scale: 1.8, opacity: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        />
+      )}
       <motion.h3 
         className="text-5xl font-bold text-blue-400 mb-4"
         whileHover={{ scale: 1.2 }}
       >
-        {number}
+        {count}
+        {suffix}
       </motion.h3>
       <p className="text-gray-400 text-lg">{label}</p>
     </motion.div>
