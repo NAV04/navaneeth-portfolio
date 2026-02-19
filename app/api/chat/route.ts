@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { portfolioKnowledge } from "@/app/lib/portfolioKnowledge";
 
+function toPlainText(text: string) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`/g, "")
+    .trim();
+}
+
 export async function POST(req: Request) {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -43,6 +51,7 @@ Speak in a friendly student-like tone, not overly corporate.
 Keep responses short: 2-5 lines max, or up to 4 concise bullet points.
 Do not start with long greetings or repeated introductions.
 Answer directly and naturally.
+Do not use markdown formatting. Return plain text only (no **, *, _, or headings).
 
 Knowledge Base:
 ${portfolioKnowledge}
@@ -70,7 +79,7 @@ ${portfolioKnowledge}
     const data = await response.json();
 
     return NextResponse.json({
-      reply: data?.choices?.[0]?.message?.content ?? "No response.",
+      reply: toPlainText(data?.choices?.[0]?.message?.content ?? "No response."),
     });
   } catch {
     return NextResponse.json(
