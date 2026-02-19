@@ -2,7 +2,9 @@ export const portfolioKnowledge = `
 Navaneeth A D is an AI & Machine Learning Engineer specializing in Generative AI, RAG systems, backend architecture, and applied research.
 
 Education:
-B.Tech in Artificial Intelligence & Machine Learning, Presidency University, CGPA 9.31.
+- B.Tech in Computer Science and Engineering (Specialization: AI & ML), Presidency University, Bengaluru.
+- Graduating in 2026.
+- Current CGPA: 9.31.
 
 Experience:
 - Python & AI Developer Intern at Innovitegra Solutions.
