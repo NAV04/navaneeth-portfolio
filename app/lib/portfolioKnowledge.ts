@@ -4,7 +4,6 @@ Navaneeth A D is an AI & Machine Learning Engineer specializing in Generative AI
 Education:
 - B.Tech in Computer Science and Engineering (Specialization: AI & ML), Presidency University, Bengaluru.
 - Graduating in 2026.
-- Current CGPA: 9.31.
 
 Experience:
 - Python & AI Developer Intern at Innovitegra Solutions.
