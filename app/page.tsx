@@ -96,6 +96,7 @@ export default function Home() {
   return (
     <main className="bg-[#050A14] text-white overflow-hidden antialiased selection:bg-cyan-500/30 relative">
       {!reduceMotion && <CinematicLoader />}
+      {!reduceMotion && <GlowCursorDot />}
       {!reduceMotion && <ClickBurstLayer />}
       {/* Cinematic Noise Overlay */}
       <div className="fixed inset-0 z-[100] pointer-events-none opacity-[0.03] mix-blend-overlay" 
@@ -1018,6 +1019,60 @@ function TerminalAbout() {
           <span className="inline-block w-2 h-4 bg-emerald-300 animate-pulse align-middle" />
         )}
       </div>
+    </motion.div>
+  );
+}
+
+function GlowCursorDot() {
+  const x = useMotionValue(-9999);
+  const y = useMotionValue(-9999);
+  const rx = useSpring(x, { stiffness: 560, damping: 42, mass: 0.2 });
+  const ry = useSpring(y, { stiffness: 560, damping: 42, mass: 0.2 });
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(pointer:fine)").matches) return;
+    document.documentElement.classList.add("custom-cursor-active");
+
+    const onMove = (e: PointerEvent) => {
+      x.set(e.clientX);
+      y.set(e.clientY);
+      setVisible(true);
+    };
+
+    const onLeave = () => setVisible(false);
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerleave", onLeave, { passive: true });
+
+    return () => {
+      document.documentElement.classList.remove("custom-cursor-active");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+    };
+  }, [x, y]);
+
+  return (
+    <motion.div
+      className="fixed left-0 top-0 z-[160] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+      style={{ x: rx, y: ry, willChange: "transform" }}
+      animate={{ opacity: visible ? 1 : 0, scale: visible ? 1 : 0.85 }}
+      transition={{ duration: 0.12, ease: "easeOut" }}
+    >
+      <span
+        className="absolute left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(34,211,238,0.62) 0%, rgba(34,211,238,0.34) 36%, rgba(34,211,238,0.12) 58%, rgba(34,211,238,0) 78%)",
+        }}
+      />
+      <span
+        className="absolute left-1/2 top-1/2 h-[10px] w-[10px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          background: "rgb(103,232,249)",
+          boxShadow: "0 0 12px rgba(103,232,249,0.98), 0 0 26px rgba(34,211,238,0.9), 0 0 42px rgba(34,211,238,0.55)",
+        }}
+      />
     </motion.div>
   );
 }
