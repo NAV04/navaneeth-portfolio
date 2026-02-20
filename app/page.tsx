@@ -6,14 +6,27 @@ import {
   useScroll,
   useSpring,
   useTransform,
+  useReducedMotion,
   AnimatePresence,
 } from "framer-motion";
 import { Linkedin, Mail } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import ChatDemo from "./components/ChatDemo";
+import dynamic from "next/dynamic";
+
+const ChatDemoWidget = dynamic(() => import("./components/ChatDemo"), {
+  ssr: false,
+});
+const LazyNeuralNetworkBackground = dynamic(
+  () => import("./components/NeuralNetworkBackground"),
+  { ssr: false },
+);
+const LazyRadarChart = dynamic(() => import("./components/RadarChart"), {
+  ssr: false,
+});
 
 export default function Home() {
+  const reduceMotion = useReducedMotion();
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [scrolled, setScrolled] = useState(false);
@@ -42,36 +55,48 @@ export default function Home() {
   });
 
   useEffect(() => {
+    if (reduceMotion) return;
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(pointer:fine)").matches) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, reduceMotion]);
 
   useEffect(() => {
+    let raf = 0;
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      if (ticking) return;
+      ticking = true;
+      raf = window.requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 50);
+        ticking = false;
+      });
     };
 
     const roleInterval = setInterval(() => {
       setRoleIndex((prev) => (prev + 1) % roles.length);
     }, 3000);
 
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      if (raf) window.cancelAnimationFrame(raf);
       clearInterval(roleInterval);
     };
   }, [roles.length]);
 
   return (
     <main className="bg-[#050A14] text-white overflow-hidden antialiased selection:bg-cyan-500/30 relative">
-      <CinematicLoader />
-      <MagneticCursor />
-      <ClickBurstLayer />
+      {!reduceMotion && <CinematicLoader />}
+      {!reduceMotion && <ClickBurstLayer />}
       {/* Cinematic Noise Overlay */}
       <div className="fixed inset-0 z-[100] pointer-events-none opacity-[0.03] mix-blend-overlay" 
            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
@@ -79,26 +104,32 @@ export default function Home() {
 
       {/* Dynamic Background Grid */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <motion.div 
-          animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
-          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" 
-        />
-        <motion.div
-          animate={{ x: [0, 80, 0], y: [0, -60, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[15%] left-[8%] w-64 h-64 rounded-full bg-cyan-400/10 blur-[90px]"
-        />
-        <motion.div
-          animate={{ x: [0, -60, 0], y: [0, 70, 0] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-[18%] right-[10%] w-72 h-72 rounded-full bg-indigo-500/10 blur-[100px]"
-        />
-        <motion.div
-          animate={{ x: [0, 45, 0], y: [0, -35, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[36%] right-[18%] w-64 h-64 rounded-full bg-rose-500/10 blur-[110px]"
-        />
+        {!reduceMotion ? (
+          <>
+            <motion.div 
+              animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
+              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" 
+            />
+            <motion.div
+              animate={{ x: [0, 80, 0], y: [0, -60, 0] }}
+              transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[15%] left-[8%] w-64 h-64 rounded-full bg-cyan-400/10 blur-[90px]"
+            />
+            <motion.div
+              animate={{ x: [0, -60, 0], y: [0, 70, 0] }}
+              transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute bottom-[18%] right-[10%] w-72 h-72 rounded-full bg-indigo-500/10 blur-[100px]"
+            />
+            <motion.div
+              animate={{ x: [0, 45, 0], y: [0, -35, 0] }}
+              transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-[36%] right-[18%] w-64 h-64 rounded-full bg-rose-500/10 blur-[110px]"
+            />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-10" />
+        )}
       </div>
 
       {/* Scroll Progress Bar */}
@@ -108,10 +139,12 @@ export default function Home() {
       />
 
       {/* Mouse Follower Glow */}
-      <motion.div
-        className="pointer-events-none fixed top-0 left-0 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-[100px] z-0 -translate-x-1/2 -translate-y-1/2 mix-blend-screen"
-        style={{ x: smoothX, y: smoothY }}
-      />
+      {!reduceMotion && (
+        <motion.div
+          className="pointer-events-none fixed top-0 left-0 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-[100px] z-0 -translate-x-1/2 -translate-y-1/2 mix-blend-screen"
+          style={{ x: smoothX, y: smoothY }}
+        />
+      )}
 
       {/* Navigation */}
       <nav
@@ -158,40 +191,44 @@ export default function Home() {
         id="home"
         className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-16"
       >
-        <NeuralNetworkBackground />
+        <LazyNeuralNetworkBackground />
         {/* Animated Background Elements */}
-        <motion.div
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px]"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-purple-500/20 rounded-full blur-[120px]"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute top-[22%] right-[22%] w-64 h-64 bg-rose-500/15 rounded-full blur-[110px]"
-          animate={{
-            scale: [1, 1.12, 1],
-            opacity: [0.2, 0.45, 0.2],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute top-1/2 left-1/2 w-[40rem] h-[40rem] bg-blue-500/10 rounded-full blur-[100px] -z-10"
-          animate={{
-            scale: [1, 1.1, 1],
-            rotate: [0, 90, 0],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
+        {!reduceMotion && (
+          <>
+            <motion.div
+              className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px]"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-purple-500/20 rounded-full blur-[120px]"
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute top-[22%] right-[22%] w-64 h-64 bg-rose-500/15 rounded-full blur-[110px]"
+              animate={{
+                scale: [1, 1.12, 1],
+                opacity: [0.2, 0.45, 0.2],
+              }}
+              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute top-1/2 left-1/2 w-[40rem] h-[40rem] bg-blue-500/10 rounded-full blur-[100px] -z-10"
+              animate={{
+                scale: [1, 1.1, 1],
+                rotate: [0, 90, 0],
+              }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            />
+          </>
+        )}
 
         <div className="relative z-10 text-center max-w-5xl mx-auto">
           <motion.div
@@ -709,7 +746,7 @@ export default function Home() {
           />
 
           <div className="mb-14">
-            <ThreeDGraphCard />
+            <LazyRadarChart />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
@@ -818,7 +855,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
-      <ChatDemo />
+      <ChatDemoWidget />
     </main>
   );
 }
@@ -982,215 +1019,6 @@ function TerminalAbout() {
         )}
       </div>
     </motion.div>
-  );
-}
-
-function NeuralNetworkBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let raf = 0;
-    const pointer = { x: -9999, y: -9999 };
-    const nodes = Array.from({ length: 34 }).map(() => ({
-      x: Math.random(),
-      y: Math.random(),
-      vx: (Math.random() - 0.5) * 0.0018,
-      vy: (Math.random() - 0.5) * 0.0018,
-    }));
-
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = canvas.clientWidth * dpr;
-      canvas.height = canvas.clientHeight * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    const onMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      pointer.x = e.clientX - rect.left;
-      pointer.y = e.clientY - rect.top;
-    };
-
-    const draw = () => {
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      ctx.clearRect(0, 0, w, h);
-
-      nodes.forEach((n) => {
-        n.x += n.vx;
-        n.y += n.vy;
-        if (n.x < 0 || n.x > 1) n.vx *= -1;
-        if (n.y < 0 || n.y > 1) n.vy *= -1;
-      });
-
-      for (let i = 0; i < nodes.length; i += 1) {
-        for (let j = i + 1; j < nodes.length; j += 1) {
-          const ax = nodes[i].x * w;
-          const ay = nodes[i].y * h;
-          const bx = nodes[j].x * w;
-          const by = nodes[j].y * h;
-          const d = Math.hypot(ax - bx, ay - by);
-          if (d < 160) {
-            ctx.strokeStyle = `rgba(34,211,238,${0.12 - d / 1800})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(ax, ay);
-            ctx.lineTo(bx, by);
-            ctx.stroke();
-          }
-        }
-      }
-
-      nodes.forEach((n) => {
-        const x = n.x * w;
-        const y = n.y * h;
-        const near = Math.hypot(pointer.x - x, pointer.y - y) < 110;
-        ctx.fillStyle = near ? "rgba(59,130,246,0.95)" : "rgba(34,211,238,0.75)";
-        ctx.beginPath();
-        ctx.arc(x, y, near ? 2.8 : 2, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      raf = requestAnimationFrame(draw);
-    };
-
-    resize();
-    window.addEventListener("resize", resize);
-    window.addEventListener("mousemove", onMove);
-    draw();
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", onMove);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-45 pointer-events-none" />;
-}
-
-function MagneticCursor() {
-  const x = useMotionValue(-100);
-  const y = useMotionValue(-100);
-  const rx = useSpring(x, { stiffness: 280, damping: 24 });
-  const ry = useSpring(y, { stiffness: 280, damping: 24 });
-  const [locked, setLocked] = useState(false);
-  const [label, setLabel] = useState("SCAN");
-  const accent = "#98FF98";
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const fine = window.matchMedia("(pointer:fine)").matches;
-    if (!fine) return;
-
-    document.documentElement.classList.add("custom-cursor-active");
-
-    const onMove = (e: MouseEvent) => {
-      x.set(e.clientX);
-      y.set(e.clientY);
-    };
-    const onOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      const interactive = target.closest<HTMLElement>(
-        "[data-cursor],a,button,[role='button'],input,textarea,select",
-      );
-      if (interactive) {
-        setLocked(true);
-        setLabel(interactive.getAttribute("data-cursor") || "LOCK");
-      } else {
-        setLocked(false);
-        setLabel("SCAN");
-      }
-    };
-    const onLeaveWindow = () => {
-      setLocked(false);
-      setLabel("SCAN");
-    };
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseover", onOver);
-    window.addEventListener("mouseout", onLeaveWindow);
-
-    return () => {
-      document.documentElement.classList.remove("custom-cursor-active");
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseover", onOver);
-      window.removeEventListener("mouseout", onLeaveWindow);
-    };
-  }, [x, y]);
-
-  return (
-    <>
-      <motion.div
-        className="magnetic-cursor fixed top-0 left-0 z-[150] pointer-events-none w-2.5 h-2.5 rounded-full mix-blend-screen -translate-x-1/2 -translate-y-1/2"
-        style={{ x, y, backgroundColor: accent, boxShadow: `0 0 14px ${accent}` }}
-        animate={{ scale: locked ? 1.15 : 1, opacity: locked ? 1 : 0.95 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      />
-      <motion.div
-        className="magnetic-cursor fixed top-0 left-0 z-[149] pointer-events-none -translate-x-1/2 -translate-y-1/2"
-        style={{ x: rx, y: ry }}
-        animate={{ scale: locked ? 0.9 : 1, opacity: locked ? 1 : 0.85 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      >
-        <div className="relative w-16 h-16">
-          <motion.span
-            className="absolute w-4 h-4 border-t border-l"
-            style={{ borderColor: accent }}
-            animate={{ top: locked ? 9 : 0, left: locked ? 9 : 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 22 }}
-          />
-          <motion.span
-            className="absolute w-4 h-4 border-t border-r"
-            style={{ borderColor: accent }}
-            animate={{ top: locked ? 9 : 0, right: locked ? 9 : 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 22 }}
-          />
-          <motion.span
-            className="absolute w-4 h-4 border-b border-l"
-            style={{ borderColor: accent }}
-            animate={{ bottom: locked ? 9 : 0, left: locked ? 9 : 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 22 }}
-          />
-          <motion.span
-            className="absolute w-4 h-4 border-b border-r"
-            style={{ borderColor: accent }}
-            animate={{ bottom: locked ? 9 : 0, right: locked ? 9 : 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 22 }}
-          />
-
-          <motion.span
-            className="absolute left-2 right-2 h-px"
-            style={{
-              backgroundColor: accent,
-              boxShadow: `0 0 10px ${accent}`,
-            }}
-            animate={{ y: locked ? [8, 40, 8] : [28, 28] }}
-            transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
-          />
-
-          <motion.span
-            className="absolute top-1/2 left-1/2 w-10 h-10 rounded-full border -translate-x-1/2 -translate-y-1/2"
-            style={{ borderColor: `${accent}66` }}
-            animate={{ scale: locked ? [1, 1.12, 1] : [1, 1.06, 1] }}
-            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-          />
-
-          <div
-            className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] tracking-[0.18em] font-mono whitespace-nowrap"
-            style={{ color: accent }}
-          >
-            {label}
-          </div>
-        </div>
-      </motion.div>
-    </>
   );
 }
 
@@ -1864,292 +1692,6 @@ function ClickBurstLayer() {
           );
         }),
       )}
-    </div>
-  );
-}
-
-function ThreeDGraphCard() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
-    if (!ctx) return;
-
-    type SkillNode = {
-      label: string;
-      value: number;
-      color: string;
-      x: number;
-      y: number;
-      z: number;
-      vx: number;
-      vy: number;
-      vz: number;
-      r: number;
-      sx: number;
-      sy: number;
-      sr: number;
-    };
-
-    type Packet = {
-      a: number;
-      b: number;
-      t: number;
-      speed: number;
-    };
-
-    const nodes: SkillNode[] = [
-      { label: "GENERATIVE", value: 95, color: "#2fffe5", x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, sx: 0, sy: 0, sr: 0 },
-      { label: "RESEARCH", value: 92, color: "#38bdf8", x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, sx: 0, sy: 0, sr: 0 },
-      { label: "RAG", value: 90, color: "#a78bfa", x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, sx: 0, sy: 0, sr: 0 },
-      { label: "NLP", value: 88, color: "#f472b6", x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, sx: 0, sy: 0, sr: 0 },
-      { label: "BACKEND", value: 85, color: "#10b981", x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, sx: 0, sy: 0, sr: 0 },
-      { label: "CLOUD", value: 80, color: "#fde047", x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, sx: 0, sy: 0, sr: 0 },
-      { label: "CV", value: 82, color: "#fb923c", x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, r: 0, sx: 0, sy: 0, sr: 0 },
-    ];
-
-    const packets: Packet[] = [];
-    const activeLinks: Array<{ a: number; b: number; strength: number }> = [];
-    let raf = 0;
-    let width = 0;
-    let height = 0;
-    let lastTs = 0;
-    let running = false;
-    let tabVisible = typeof document === "undefined" ? true : document.visibilityState === "visible";
-    let inView = true;
-    let backgroundFill: CanvasGradient | null = null;
-    const isMobileViewport =
-      typeof window !== "undefined" &&
-      (window.matchMedia("(max-width: 768px)").matches ||
-        window.matchMedia("(pointer: coarse)").matches);
-    const frameBudgetMs = 1000 / (isMobileViewport ? 30 : 45);
-    const maxPackets = isMobileViewport ? 10 : 16;
-    const glowBlurNode = isMobileViewport ? 7 : 10;
-    const glowBlurPacket = isMobileViewport ? 4 : 6;
-    const linkDistance = isMobileViewport ? 0.95 : 1.05;
-    const packetSpawnChance = isMobileViewport ? 0.16 : 0.22;
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const bounds = { x: 1, y: 0.8, z: 1 };
-
-    const resize = () => {
-      const dpr = Math.min(1.5, window.devicePixelRatio || 1);
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
-      canvas.width = Math.max(1, Math.floor(width * dpr));
-      canvas.height = Math.max(1, Math.floor(height * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      backgroundFill = ctx.createRadialGradient(
-        width * 0.55,
-        height * 0.5,
-        20,
-        width * 0.55,
-        height * 0.5,
-        width * 0.75,
-      );
-      backgroundFill.addColorStop(0, "rgba(16,185,129,0.05)");
-      backgroundFill.addColorStop(1, "rgba(2,6,23,0)");
-    };
-
-    const seedNodes = () => {
-      nodes.forEach((n, idx) => {
-        const ring = idx % 2 === 0 ? 0.65 : 0.42;
-        const a = (idx / nodes.length) * Math.PI * 2;
-        n.x = Math.cos(a) * ring + (Math.random() - 0.5) * 0.2;
-        n.y = Math.sin(a) * ring * 0.65 + (Math.random() - 0.5) * 0.18;
-        n.z = (Math.random() - 0.5) * 1.4;
-        n.vx = (Math.random() - 0.5) * 0.18;
-        n.vy = (Math.random() - 0.5) * 0.14;
-        n.vz = (Math.random() - 0.5) * 0.16;
-        n.r = 5 + (n.value - 75) * 0.22;
-      });
-    };
-
-    const projectNode = (n: SkillNode) => {
-      const fov = 1.9;
-      const depth = (n.z + 2.2) / 3.2;
-      const scale = fov / (fov + n.z + 1.2);
-      n.sx = width * 0.5 + n.x * width * 0.32 * scale;
-      n.sy = height * 0.53 + n.y * height * 0.55 * scale;
-      n.sr = n.r * (0.72 + depth * 0.65) * scale;
-      return depth;
-    };
-
-    const draw = (ts: number) => {
-      if (!running) return;
-      if (!tabVisible || !inView) {
-        raf = requestAnimationFrame(draw);
-        return;
-      }
-      if (!lastTs) lastTs = ts;
-      if (ts - lastTs < frameBudgetMs) {
-        raf = requestAnimationFrame(draw);
-        return;
-      }
-
-      const dt = Math.min(0.04, lastTs ? (ts - lastTs) / 1000 : 0.016);
-      lastTs = ts;
-      ctx.clearRect(0, 0, width, height);
-
-      if (backgroundFill) ctx.fillStyle = backgroundFill;
-      ctx.fillRect(0, 0, width, height);
-
-      activeLinks.length = 0;
-
-      nodes.forEach((n) => {
-        n.x += n.vx * dt;
-        n.y += n.vy * dt;
-        n.z += n.vz * dt;
-
-        if (Math.abs(n.x) > bounds.x) {
-          n.x = Math.sign(n.x) * bounds.x;
-          n.vx *= -1;
-        }
-        if (Math.abs(n.y) > bounds.y) {
-          n.y = Math.sign(n.y) * bounds.y;
-          n.vy *= -1;
-        }
-        if (Math.abs(n.z) > bounds.z) {
-          n.z = Math.sign(n.z) * bounds.z;
-          n.vz *= -1;
-        }
-
-        projectNode(n);
-      });
-
-      for (let i = 0; i < nodes.length; i += 1) {
-        for (let j = i + 1; j < nodes.length; j += 1) {
-          const a = nodes[i];
-          const b = nodes[j];
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const dz = a.z - b.z;
-          const d3 = Math.hypot(dx, dy, dz);
-          if (d3 > linkDistance) continue;
-
-          const strength = 1 - d3 / linkDistance;
-          activeLinks.push({ a: i, b: j, strength });
-
-          ctx.beginPath();
-          ctx.moveTo(a.sx, a.sy);
-          ctx.lineTo(b.sx, b.sy);
-          ctx.strokeStyle = `rgba(45,255,229,${0.08 + strength * 0.35})`;
-          ctx.lineWidth = 0.8 + strength * 1.2;
-          ctx.stroke();
-        }
-      }
-
-      if (!prefersReducedMotion && activeLinks.length > 0 && packets.length < maxPackets && Math.random() < packetSpawnChance) {
-        const link = activeLinks[Math.floor(Math.random() * activeLinks.length)];
-        packets.push({
-          a: link.a,
-          b: link.b,
-          t: Math.random() * 0.4,
-          speed: 0.35 + Math.random() * 0.55,
-        });
-      }
-
-      for (let i = packets.length - 1; i >= 0; i -= 1) {
-        const p = packets[i];
-        const from = nodes[p.a];
-        const to = nodes[p.b];
-        p.t += p.speed * dt;
-        if (p.t >= 1) {
-          packets.splice(i, 1);
-          continue;
-        }
-
-        const x = from.sx + (to.sx - from.sx) * p.t;
-        const y = from.sy + (to.sy - from.sy) * p.t;
-        ctx.beginPath();
-        ctx.arc(x, y, 2.1, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(152,255,152,0.95)";
-        ctx.shadowColor = "rgba(152,255,152,0.8)";
-        ctx.shadowBlur = glowBlurPacket;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-
-      const sorted = [...nodes].sort((a, b) => a.z - b.z);
-      sorted.forEach((n) => {
-        const g = ctx.createRadialGradient(n.sx, n.sy, 0, n.sx, n.sy, n.sr * 2.5);
-        g.addColorStop(0, `${n.color}F0`);
-        g.addColorStop(0.38, `${n.color}99`);
-        g.addColorStop(1, `${n.color}00`);
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(n.sx, n.sy, n.sr * 2.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(n.sx, n.sy, n.sr, 0, Math.PI * 2);
-        ctx.fillStyle = n.color;
-        ctx.shadowColor = n.color;
-        ctx.shadowBlur = glowBlurNode;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = "rgba(236,253,245,0.95)";
-        ctx.font = "700 11px JetBrains Mono, monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(`${n.value}%`, n.sx, n.sy - n.sr - 8);
-
-        ctx.fillStyle = "rgba(226,232,240,0.88)";
-        ctx.font = "700 10px JetBrains Mono, monospace";
-        ctx.fillText(n.label, n.sx, n.sy + n.sr + 14);
-      });
-
-      raf = requestAnimationFrame(draw);
-    };
-
-    const start = () => {
-      if (running) return;
-      running = true;
-      lastTs = 0;
-      raf = requestAnimationFrame(draw);
-    };
-
-    const stop = () => {
-      running = false;
-      cancelAnimationFrame(raf);
-    };
-
-    const onVisibility = () => {
-      tabVisible = document.visibilityState === "visible";
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        inView = Boolean(entries[0]?.isIntersecting);
-      },
-      { threshold: 0.1 },
-    );
-
-    resize();
-    seedNodes();
-    observer.observe(canvas);
-    document.addEventListener("visibilitychange", onVisibility);
-    start();
-    window.addEventListener("resize", resize);
-
-    return () => {
-      stop();
-      observer.disconnect();
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  return (
-    <div className="rounded-2xl border border-cyan-300/20 bg-[#0A1020]/80 p-4 md:p-6">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm md:text-base font-semibold text-cyan-200">Skill Constellation Map</p>
-        <p className="text-[10px] md:text-xs font-mono tracking-[0.2em] text-gray-400">3D LIVE</p>
-      </div>
-      <canvas ref={canvasRef} className="w-full h-[220px] md:h-[260px] rounded-xl bg-[#060B16]" />
     </div>
   );
 }
