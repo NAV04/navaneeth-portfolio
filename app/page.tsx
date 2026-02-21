@@ -27,6 +27,8 @@ const LazyRadarChart = dynamic(() => import("./components/RadarChart"), {
 
 export default function Home() {
   const reduceMotion = useReducedMotion();
+  const [isMobileView, setIsMobileView] = useState(false);
+  const shouldReduceMotion = Boolean(reduceMotion || isMobileView);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [scrolled, setScrolled] = useState(false);
@@ -55,7 +57,16 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (reduceMotion) return;
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 768px), (pointer: coarse)");
+    const apply = () => setIsMobileView(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    if (shouldReduceMotion) return;
     if (typeof window === "undefined") return;
     if (!window.matchMedia("(pointer:fine)").matches) return;
 
@@ -66,7 +77,7 @@ export default function Home() {
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [mouseX, mouseY, reduceMotion]);
+  }, [mouseX, mouseY, shouldReduceMotion]);
 
   useEffect(() => {
     let raf = 0;
@@ -80,24 +91,27 @@ export default function Home() {
       });
     };
 
-    const roleInterval = setInterval(() => {
-      setRoleIndex((prev) => (prev + 1) % roles.length);
-    }, 3000);
+    let roleInterval: ReturnType<typeof setInterval> | null = null;
+    if (!shouldReduceMotion) {
+      roleInterval = setInterval(() => {
+        setRoleIndex((prev) => (prev + 1) % roles.length);
+      }, 3000);
+    }
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
       if (raf) window.cancelAnimationFrame(raf);
-      clearInterval(roleInterval);
+      if (roleInterval) clearInterval(roleInterval);
     };
-  }, [roles.length]);
+  }, [roles.length, shouldReduceMotion]);
 
   return (
     <main className="bg-[#050A14] text-white overflow-hidden antialiased selection:bg-cyan-500/30 relative">
-      {!reduceMotion && <CinematicLoader />}
-      {!reduceMotion && <GlowCursorDot />}
-      {!reduceMotion && <ClickBurstLayer />}
+      {!shouldReduceMotion && <CinematicLoader />}
+      {!shouldReduceMotion && <GlowCursorDot />}
+      {!shouldReduceMotion && <ClickBurstLayer />}
       {/* Cinematic Noise Overlay */}
       <div className="fixed inset-0 z-[100] pointer-events-none opacity-[0.03] mix-blend-overlay" 
            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
@@ -105,7 +119,7 @@ export default function Home() {
 
       {/* Dynamic Background Grid */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {!reduceMotion ? (
+        {!shouldReduceMotion ? (
           <>
             <motion.div 
               animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
@@ -140,7 +154,7 @@ export default function Home() {
       />
 
       {/* Mouse Follower Glow */}
-      {!reduceMotion && (
+      {!shouldReduceMotion && (
         <motion.div
           className="pointer-events-none fixed top-0 left-0 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-[100px] z-0 -translate-x-1/2 -translate-y-1/2 mix-blend-screen"
           style={{ x: smoothX, y: smoothY }}
@@ -194,7 +208,7 @@ export default function Home() {
       >
         <LazyNeuralNetworkBackground />
         {/* Animated Background Elements */}
-        {!reduceMotion && (
+        {!shouldReduceMotion && (
           <>
             <motion.div
               className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px]"
@@ -249,23 +263,30 @@ export default function Home() {
           >
             <GlitchText 
               text="NAVANEETH A D" 
+              disableAnimation={shouldReduceMotion}
               className="bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent"
             />
           </motion.h1>
 
           <div className="h-12 mt-6 mb-8 flex justify-center items-center overflow-hidden">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={roleIndex}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -20, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="text-base sm:text-xl md:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-orbitron tracking-[0.12em] uppercase"
-              >
-                {roles[roleIndex]}
-              </motion.p>
-            </AnimatePresence>
+            {shouldReduceMotion ? (
+              <p className="text-base sm:text-xl md:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-orbitron tracking-[0.12em] uppercase">
+                {roles[0]}
+              </p>
+            ) : (
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={roleIndex}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-base sm:text-xl md:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 font-orbitron tracking-[0.12em] uppercase"
+                >
+                  {roles[roleIndex]}
+                </motion.p>
+              </AnimatePresence>
+            )}
           </div>
 
           <motion.p
@@ -863,11 +884,35 @@ export default function Home() {
 
 // --- Components ---
 
-function GlitchText({ text, className = "" }: { text: string; className?: string }) {
+function GlitchText({
+  text,
+  className = "",
+  disableAnimation = false,
+}: {
+  text: string;
+  className?: string;
+  disableAnimation?: boolean;
+}) {
+  const reduceMotion = useReducedMotion();
+  const [mobile, setMobile] = useState(false);
+  const shouldDisable = disableAnimation || Boolean(reduceMotion) || mobile;
   const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
   const [displayText, setDisplayText] = useState(text);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 768px), (pointer: coarse)");
+    const apply = () => setMobile(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    if (shouldDisable) {
+      setDisplayText(text);
+      return;
+    }
     let scrambleTimer: ReturnType<typeof setInterval> | null = null;
 
     const runGlitch = () => {
@@ -899,7 +944,7 @@ function GlitchText({ text, className = "" }: { text: string; className?: string
       clearInterval(cycleTimer);
       if (scrambleTimer) clearInterval(scrambleTimer);
     };
-  }, [text]);
+  }, [text, shouldDisable]);
 
   return (
     <div className="relative inline-block group cursor-default">
@@ -915,6 +960,23 @@ function GlitchText({ text, className = "" }: { text: string; className?: string
 }
 
 function KineticHeading({ text, className = "" }: { text: string; className?: string }) {
+  const reduceMotion = useReducedMotion();
+  const [mobile, setMobile] = useState(false);
+  const shouldDisable = Boolean(reduceMotion) || mobile;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 768px), (pointer: coarse)");
+    const apply = () => setMobile(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
+  if (shouldDisable) {
+    return <h2 className={className}>{text}</h2>;
+  }
+
   return (
     <motion.h2
       initial="hidden"
