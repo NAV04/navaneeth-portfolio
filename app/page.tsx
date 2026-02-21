@@ -163,9 +163,9 @@ export default function Home() {
 
       {/* Navigation */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+        className={`fixed top-0 left-0 right-0 z-[160] pt-[env(safe-area-inset-top)] transition-all duration-500 ease-in-out ${
           scrolled
-            ? "top-2 left-3 right-3 md:top-4 md:left-0 md:right-0 md:w-fit md:mx-auto bg-[#0B1120]/80 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-full px-4 md:px-8 py-2 md:py-3 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+            ? "top-2 left-2 right-2 md:top-4 md:left-0 md:right-0 md:w-fit md:mx-auto bg-[#0B1120]/80 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-full px-3 md:px-8 py-2 md:py-3 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
             : "w-full bg-transparent py-6 px-6 md:px-12"
         }`}
       >
@@ -179,7 +179,7 @@ export default function Home() {
             <span className="ml-1 text-rose-400 animate-cursor-blink drop-shadow-[0_0_12px_rgba(251,113,133,0.5)]">_</span>
           </div>
 
-          <div className="flex gap-1 md:gap-6 overflow-x-auto max-w-[62vw] md:max-w-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-1 md:gap-6 overflow-x-auto max-w-[70vw] md:max-w-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {[
               "Home",
               "About",
@@ -624,18 +624,18 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15 }}
-                whileHover={{ scale: 1.02, y: -5 }}
+                whileHover={shouldReduceMotion ? undefined : { scale: 1.02, y: -5 }}
               >
               <SpotlightCard className="p-8 md:p-10">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-                  <h3 className="text-2xl font-bold text-gray-100">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-100 break-words">
                     {paper.title}
                   </h3>
-                  <span className="px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-medium whitespace-nowrap">
+                  <span className="max-w-full px-3 md:px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[11px] md:text-xs font-medium whitespace-normal break-words text-left">
                     {paper.venue}
                   </span>
                 </div>
-                <p className="text-gray-400 leading-relaxed">{paper.desc}</p>
+                <p className="text-gray-400 leading-relaxed break-words">{paper.desc}</p>
               </SpotlightCard>
               </motion.div>
             ))}
@@ -1466,6 +1466,19 @@ function ProjectDomain({
     tags?: string[];
   }[];
 }) {
+  const reduceMotion = useReducedMotion();
+  const [mobile, setMobile] = useState(false);
+  const shouldDisableHover = Boolean(reduceMotion) || mobile;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 768px), (pointer: coarse)");
+    const apply = () => setMobile(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
   return (
     <div className="mb-24 last:mb-0">
       <motion.h3
@@ -1487,19 +1500,19 @@ function ProjectDomain({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1, duration: 0.5 }}
-            whileHover={{ scale: 1.02, y: -5 }}
+            whileHover={shouldDisableHover ? undefined : { scale: 1.02, y: -5 }}
           >
             <ThreeDTiltCard className="h-full">
               <SpotlightCard className="p-8 hover:border-blue-500/30 transition-colors h-full">
                 <div className="absolute -top-24 -right-20 w-44 h-44 bg-gradient-to-br from-white/15 to-transparent rotate-12 opacity-20 group-hover:opacity-45 transition-opacity pointer-events-none" />
-                <h4 className="text-xl font-bold mb-3 text-gray-100 group-hover:text-rose-400 group-hover:drop-shadow-[0_0_8px_rgba(251,113,133,0.35)] transition-all">
+                <h4 className="text-xl font-bold mb-3 text-gray-100 group-hover:text-rose-400 group-hover:drop-shadow-[0_0_8px_rgba(251,113,133,0.35)] transition-all break-words">
                   {project.name}
                 </h4>
                 <p className="text-gray-400 text-sm leading-relaxed mb-6">
                   {project.desc}
                 </p>
                 {project.publication && (
-                  <p className="text-rose-400/90 text-xs leading-relaxed mb-4 drop-shadow-[0_0_6px_rgba(251,113,133,0.25)]">
+                  <p className="text-rose-400/90 text-xs leading-relaxed mb-4 drop-shadow-[0_0_6px_rgba(251,113,133,0.25)] break-words">
                     <span className="font-semibold text-rose-300">Publication:</span>{" "}
                     {project.publication}
                   </p>
