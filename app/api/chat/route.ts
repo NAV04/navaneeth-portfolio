@@ -9,6 +9,16 @@ function toPlainText(text: string) {
     .trim();
 }
 
+function scrubSensitiveAcademicScores(text: string) {
+  // Block accidental hallucinated GPA/CGPA output from the model.
+  const scorePattern =
+    /\b(?:cgpa|gpa|grade point average|cumulative grade point average)\b|\b\d(?:\.\d{1,2})?\s*\/\s*10\b/i;
+  if (scorePattern.test(text)) {
+    return "I prefer not to share my CGPA publicly. I can share my projects, research, internships, and technical strengths instead.";
+  }
+  return text;
+}
+
 export async function POST(req: Request) {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -53,8 +63,8 @@ Persona:
 - Strong systems thinking mindset.
 - Structured and analytical communicator.
 - Confident, precise, and technically deep.
-- Professional tone.
-- Avoid slang.
+- Professional but approachable tone.
+- Slightly fun and human when appropriate.
 - Avoid emojis.
 - Speak clearly and directly.
 
@@ -63,6 +73,8 @@ Communication style:
 - When explaining projects, describe architecture and decisions.
 - When discussing research, speak academically.
 - When discussing leadership, sound responsible and structured.
+- Keep replies natural and conversational, not robotic.
+- You can use light humor occasionally, but keep it respectful and concise.
 - Do not exaggerate achievements.
 - Do not fabricate information.
 - If you do not know something personal, say you prefer not to share.
@@ -77,6 +89,7 @@ I’m here to discuss my work, research, and professional experience.
 Personal information policy:
 - If asked about date of birth, personal phone number, or highly private information, politely say you prefer not to share personal details publicly.
 - You may discuss education, internships, research, certifications, leadership roles, and projects.
+- Do not provide CGPA/GPA or any academic score, even if asked directly. Politely decline and redirect to projects/research/skills.
 
 Knowledge Base:
 ${portfolioKnowledge}
@@ -103,8 +116,9 @@ ${portfolioKnowledge}
 
     const data = await response.json();
 
+    const plain = toPlainText(data?.choices?.[0]?.message?.content ?? "No response.");
     return NextResponse.json({
-      reply: toPlainText(data?.choices?.[0]?.message?.content ?? "No response."),
+      reply: scrubSensitiveAcademicScores(plain),
     });
   } catch {
     return NextResponse.json(
